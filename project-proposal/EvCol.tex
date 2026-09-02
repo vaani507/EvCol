@@ -5,95 +5,264 @@
 \usepackage{tabularx}
 \usepackage{enumitem}
 \usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{tikz}
+\usepackage{float}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+
+\definecolor{mNavy}{RGB}{30,58,138}
+\definecolor{mDark}{RGB}{15,23,42}
+\definecolor{mSlate}{RGB}{71,85,105}
+\definecolor{mBlue}{RGB}{37,99,235}
+\definecolor{mPurple}{RGB}{124,58,237}
+\definecolor{mGreen}{RGB}{5,150,105}
+\definecolor{mOrange}{RGB}{234,88,12}
+\definecolor{mLight}{RGB}{248,250,252}
+
+\hypersetup{colorlinks=true,linkcolor=mDark,urlcolor=mBlue}
+\captionsetup{labelfont={bf,color=mDark},font=small,skip=8pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{mDark}}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}{\normalfont\large\bfseries\color{mDark}}{\thesubsection}{1em}{}
+
+\tikzset{
+flowbox/.style={rectangle,rounded corners=3pt,draw=mBlue,very thick,fill=mLight,minimum width=2.6cm,minimum height=1cm,align=center,text width=2.5cm},
+process/.style={ellipse,draw=mPurple,very thick,fill=mLight,minimum width=3cm,minimum height=1.2cm,align=center},
+datastore/.style={rectangle,draw=mOrange,very thick,fill=mLight,minimum width=3cm,minimum height=.9cm,align=center},
+entity/.style={rectangle,draw=mGreen,very thick,fill=mLight,minimum width=3cm,minimum height=.9cm,align=center},
+tier/.style={rectangle,rounded corners=4pt,draw=mBlue,very thick,fill=mLight,minimum width=4.8cm,minimum height=1.05cm,align=center},
+arrow/.style={-{Latex[length=3mm]},thick,draw=mSlate}
+}
 
 \begin{document}
 
 \begin{center}
-    \LARGE\textbf{Event Collision Detector} \\
-    \vspace{0.5em}
-    \Large\textbf{Thapar Institute of Technology}
+\LARGE\textbf{Event Collision Detector: Predictive Launch-Window Intelligence}\\
+\vspace{0.5em}
+\Large\textbf{Project Proposal for UCS503P}\\
+\vspace{0.5em}
+\large Thapar Institute of Engineering and Technology
 \end{center}
-\vspace{1.5em}
 
+\vspace{1.5em}
 \renewcommand{\arraystretch}{1.5}
 \noindent
 \begin{tabularx}{\textwidth}{|l|X|}
 \hline
-\textbf{Student Names} & Jaskaran Singh, Vaani  Mehta, Parmeet Singh \\
+\textbf{Student Names} & Jaskaran Singh, Vaani Mehta, Parmeet Singh \\
 \hline
-\textbf{Roll Numbers} & 1024160033, 1024160132, 1024160021  \\
+\textbf{Roll Numbers} & 1024160033, 1024160123, 1024160021 \\
 \hline
-\textbf{Course} & Software Engineering \\
+\textbf{Course} & Software Engineering (UCS503P) \\
 \hline
-\textbf{Submitted to} & Dr Jeelani Asif \\
+\textbf{Submitted to} & Jeelani Asif \\
 \hline
-
 \end{tabularx}
 
-\vspace{2em}
+\section{Higher-order goal}
+The project aims to improve the success of high-stakes launches by reducing avoidable competition for audience attention, media coverage, and marketing visibility. The immediate engineering objective of the \textbf{Event Collision Detector} is to convert cross-industry event intelligence into an actionable scheduling decision by aggregating external events, evaluating a proposed launch window, generating an explainable collision-risk score, and recommending lower-risk alternatives.
 
-\section*{1. Introduction}
-In today’s hyper-connected landscape, timing is everything. High-stakes product launches, marketing campaigns, and major announcements frequently underperform-not due to poor execution, but because they are launched in noisy, overcrowded time slots without prior visibility. The Event Collision Detector brings predictive intelligence to your release calendar. By continuously aggregating cross-industry benchmarks, competitor movements, and cultural events, we empower teams to claim clear air space and maximize market impact.
-
-\section*{2. Problem Statement}
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Blind Spot Scheduling:} Teams plan launches using internal calendars alone, completely blind to external market activity, overlapping competitor reveals, and major cultural distractions.
-    \item \textbf{Diluted Audience Attention:} When events collide, media coverage splits, attendee participation plummets, and impression costs surge across every digital platform.
-    \item \textbf{Sunk Marketing Spend:} Launching on an unvetted date degrades ROI, squanders months of preparation, and forces teams to compete against noise rather than stand out.
+\section{Time-to-value}
+\begin{itemize}[leftmargin=0.7cm]
+\item Deliver an initial single-industry event ingestion pipeline and heuristic collision score within the first iteration.
+\item Prioritize fast feedback using existing event APIs and explainable rule-based scoring before introducing advanced predictive models.
+\item Define first-iteration success as a complete date input $\rightarrow$ event retrieval $\rightarrow$ risk score $\rightarrow$ recommendation flow.
 \end{itemize}
 
-\section*{3. Proposed System: Our Innovative Solutions}
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Cross-Industry Event Radar:} Continuously monitors global event databases, industry conferences, competitor launch windows, and major public events to build a live 360-degree timeline.
-    \item \textbf{Real-Time Collision Scoring:} Instantly evaluates proposed launch dates against conflicting events, calculating a risk score based on target audience overlap and media friction.
-    \item \textbf{Optimal Launch Recommendations:} Leverages predictive analytics to pinpoint quiet, high-visibility scheduling windows, ensuring maximum reach, attendance, and revenue.
+\section{Problem Statement}
+Marketing and product teams often choose launch dates using internal schedules without sufficient visibility into the external event landscape.
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Blind-Spot Scheduling:} Internal calendars do not show competitor launches, industry conferences, or major public events.
+\item \textbf{Diluted Audience Attention:} Overlapping events fragment media coverage and audience engagement.
+\item \textbf{Sunk Marketing Spend:} A poorly timed launch can reduce the return on months of campaign preparation.
+\item \textbf{No Systematic Alternative-Date Discovery:} Teams lack a structured way to identify nearby low-risk windows.
 \end{itemize}
 
-\section*{4. Objectives}
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Develop a centralized data pipeline:} Build automated web scrapers and API integrations to continuously aggregate global event databases, industry conferences, and cultural events into a Cross-Industry Event Radar .
-    \item \textbf{Build the scoring engine:} Implement an algorithm to calculate a Real-Time Collision Score for proposed dates based on target audience overlap and media friction .
-    \item \textbf{Create a recommendation system:} Use predictive analytics to pinpoint quiet, high-visibility scheduling windows .
-    \item \textbf{Design a user-centric dashboard:} Build a web application where marketing and product teams can input their proposed launch dates and instantly see a risk breakdown.
-    \item \textbf{Implement calendar integrations:} Allow users to sync the radar with their internal planning tools (e.g., Google Calendar, Outlook).
+\section{Proposed Solution}
+\subsection{Overview}
+Build a web-based \textbf{Event Collision Detector} with the following components:
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Cross-Industry Event Radar:} Aggregates external events from APIs, conference schedules, and selected public sources.
+\item \textbf{Real-Time Collision Scoring:} Produces a High / Medium / Low risk score for a proposed date.
+\item \textbf{Optimal Launch Recommendations:} Searches surrounding dates and returns lower-risk alternatives.
+\item \textbf{Interactive Risk Dashboard:} Displays the risk score, conflicting events, and explanations.
+\item \textbf{Event and Source Management:} Allows administrators to maintain event records and tracked sources.
 \end{itemize}
 
-\section*{5. Scope of the Project}
-The initial release will focus on a B2B SaaS web application designed for marketing and product teams. It will include user authentication, an interactive calendar dashboard, the event ingestion pipeline, and the core collision scoring system.
-
-\subsection*{5.1 Scope Refinement}
-To ensure the project is deliverable within a single semester, the system will initially track a limited number of industries (e.g., Tech and Entertainment). We will rely on public APIs (like Eventbrite or PredictHQ) rather than building complex, multi-site web scrapers from scratch. The predictive analytics will focus on heuristic-based scoring rather than deploying a heavy, deep-learning model.
-
-\section*{6. System Workflow — Life of a Date Check}
-\begin{enumerate}[leftmargin=*]
-    \item \textbf{Input:} A marketing manager logs in and inputs a proposed product launch date, selecting their specific industry and target audience.
-    \item \textbf{Data Retrieval:} The backend queries the centralized database for any major public events, competitor launch windows, or conferences happening within a 7-day radius of the proposed date.
-    \item \textbf{Risk Evaluation:} The real-time scoring service calculates the risk score by weighing the size of overlapping events against the user's specific audience overlap and media friction .
-    \item \textbf{Display:} The dashboard visually displays the risk score (e.g., High, Medium, Low). If the score is high, the system highlights the conflicting events causing the blind-spot scheduling .
-    \item \textbf{Recommendation:} The recommendation engine scans the surrounding weeks to suggest 2-3 optimal launch dates that offer clear air space .
+\subsection{Core workflow}
+\begin{enumerate}[leftmargin=0.7cm]
+\item Event organizer enters a proposed launch date, industry, target audience, and event details.
+\item Backend retrieves nearby competing events from the event store.
+\item Collision engine compares timing, relevance, audience overlap, and estimated media friction.
+\item System assigns a risk level and identifies the events contributing to it.
+\item Recommendation engine scans nearby dates and returns lower-risk alternatives.
+\item Dashboard displays and stores the final collision report.
 \end{enumerate}
 
-\section*{7. Technology Stack}
-\noindent
-\begin{tabularx}{\textwidth}{|l|X|}
-\hline
-\textbf{Layer} & \textbf{Technology} \\
-\hline
-\textbf{Frontend} & React.js, Tailwind CSS (for an interactive calendar UI) \\
-\hline
-\textbf{Backend} & Python with FastAPI (excellent for handling data-heavy ML endpoints) \\
-\hline
-\textbf{Database} & PostgreSQL (user data) and Elasticsearch (for fast querying of dates and events) \\
-\hline
-\textbf{Data Ingestion} & Apache Airflow (to run nightly jobs pulling from event APIs) \\
-\hline
-\textbf{Scoring / ML} & Python (Pandas, Scikit-learn) for calculating target audience overlap and media friction \\
-\hline
-\textbf{Version Control \& CI/CD} & Git/GitHub, GitHub Actions \\
-\hline
-\end{tabularx}
+\begin{figure}[H]
+\centering
+\resizebox{0.98\textwidth}{!}{
+\begin{tikzpicture}[node distance=1.5cm]
+\node[flowbox] (a) {1. Submit\\Event Details};
+\node[flowbox,right=of a] (b) {2. Retrieve\\Nearby Events};
+\node[flowbox,right=of b] (c) {3. Collision\\Scoring};
+\node[flowbox,right=of c] (d) {4. Alternative-Date\\Search};
+\node[flowbox,right=of d] (e) {5. Risk Report\\\& Recommendation};
+\draw[arrow] (a)--(b); \draw[arrow] (b)--(c); \draw[arrow] (c)--(d); \draw[arrow] (d)--(e);
+\end{tikzpicture}}
+\caption{Event Collision Detector Core Workflow Execution Pipeline}
+\end{figure}
 
-\section*{8. Expected Outcome}
-By the end of the semester, the deliverable will be a functional, deployed web application. Users will be able to log in, propose a launch date, and receive an instant, data-backed collision report. This tool will successfully demonstrate how integrating external market activity can solve the problem of diluted audience attention and sunk marketing spend .
+\subsection{Operational constraints for an educational setting}
+\begin{itemize}[leftmargin=0.7cm]
+\item Limit initial event coverage to selected industries such as Technology and Entertainment.
+\item Prefer existing APIs and structured public feeds over large-scale scraping infrastructure.
+\item Use heuristic, explainable scoring so that each risk score can be traced to specific events.
+\item Keep the system deployable on standard cloud infrastructure or containerized local environments.
+\end{itemize}
+
+\section{Solution Approach}
+This project focuses on software engineering, event ingestion, low-latency retrieval, explainable scoring, and a responsive dashboard rather than novel machine-learning research.
+
+\subsection{Collision analysis logic}
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Temporal Proximity:} Events closer to the proposed date receive greater weight.
+\item \textbf{Industry Relevance:} Same-industry or related events contribute more strongly to risk.
+\item \textbf{Audience Overlap:} Similar target-audience tags increase attention conflict.
+\item \textbf{Event Magnitude:} Larger events receive greater importance.
+\item \textbf{Media Friction:} Events competing for similar channels or press attention increase the score.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=1.4cm and 2.0cm]
+\node[entity] (planned) {Proposed\\Launch Event};
+\node[entity,below=of planned] (external) {External\\Events};
+\node[process,right=3.0cm of $(planned)!0.5!(external)$] (engine) {Collision\\Analysis Engine};
+\node[datastore,right=3.2cm of engine,yshift=1.0cm] (risk) {Risk Score\\High / Medium / Low};
+\node[datastore,right=3.2cm of engine,yshift=-1.0cm] (conflicts) {Conflicting Events\\and Explanations};
+\draw[arrow] (planned.east)--(engine.west);
+\draw[arrow] (external.east)--(engine.west);
+\draw[arrow] (engine.east)--(risk.west);
+\draw[arrow] (engine.east)--(conflicts.west);
+\end{tikzpicture}
+\caption{Collision Analysis and Explainable Risk-Scoring Logic}
+\end{figure}
+
+\subsection{System architecture}
+A layered architecture separates user interaction, application logic, scoring, ingestion, and storage.
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Frontend Dashboard:} React.js + Tailwind CSS.
+\item \textbf{API Layer:} FastAPI backend for event submission, scoring, reports, and administration.
+\item \textbf{Collision Scoring Service:} Python with Pandas / Scikit-learn utilities.
+\item \textbf{Data Ingestion Layer:} Scheduled jobs that collect and normalize events from selected APIs.
+\item \textbf{Storage Layer:} PostgreSQL for users, submitted events, external events, and reports; Redis optionally for caching.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.8cm]
+\node[tier] (client) {\textbf{Client Tier}\\React + Tailwind Dashboard};
+\node[tier,below=of client] (api) {\textbf{Application Tier}\\FastAPI REST API};
+\node[tier,below=of api] (logic) {\textbf{Analysis Tier}\\Collision Scoring + Recommendation Engine};
+\node[tier,below=of logic] (ingest) {\textbf{Ingestion Tier}\\Scheduled External Event Collection};
+\node[tier,below=of ingest] (data) {\textbf{Data Tier}\\PostgreSQL + Redis Cache};
+\draw[arrow] (client)--node[right]{HTTPS / REST}(api);
+\draw[arrow] (api)--(logic); \draw[arrow] (logic)--(ingest); \draw[arrow] (ingest)--(data);
+\end{tikzpicture}
+\caption{Event Collision Detector Layered Web Architecture}
+\end{figure}
+
+\subsection{System Modeling: Use Cases and Functional Specifications}
+The primary actors are the \emph{Event Organizer}, the \emph{System Administrator}, and the \emph{External Event Sources}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{@{}lp{4.0cm}p{8.7cm}@{}}
+\toprule
+\textbf{ID} & \textbf{Use Case} & \textbf{Functional Specification \& Scope} \\ \midrule
+\textbf{UC-1} & Submit Proposed Event & User enters event date, industry, target audience, and supporting details. \\
+\textbf{UC-2} & Collect External Events & System periodically retrieves and normalizes events from selected APIs and calendars. \\
+\textbf{UC-3} & Compute Collision Score & Scoring service compares the proposed event with nearby external events. \\
+\textbf{UC-4} & Display Risk Breakdown & Dashboard displays High / Medium / Low risk and the specific conflicting events. \\
+\textbf{UC-5} & Recommend Alternative Dates & Recommendation engine evaluates nearby dates and returns lower-risk options. \\
+\textbf{UC-6} & Generate Collision Report & System stores and displays an explainable report for each analysis. \\
+\textbf{UC-7} & Maintain Event Data & Administrator updates invalid events and manages active data sources. \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{CI/CD and fast delivery enabler}
+CI/CD pipelines will run unit tests for scoring and normalization logic, verify frontend-backend API contracts, validate builds, and publish project documentation through GitHub Actions.
+
+\section{Evaluation Criterion}
+\subsection{Primary evaluation metric}
+\textbf{Collision Score Latency (CSL):} Time from proposed-event submission to returned risk score and recommendation set.
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Target:} Median CSL $\leq 500$ ms against a pre-indexed event dataset.
+\item \textbf{Measurement:} Backend request timing recorded for each scoring request.
+\end{itemize}
+
+\subsection{Secondary evaluation metrics}
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{Scoring Agreement:} At least 80\% agreement with manual assessment on a labeled validation set.
+\item \textbf{Ingestion Freshness:} Newly published events reflected within 24 hours of the ingestion cycle.
+\item \textbf{Recommendation Quality:} At least 90\% of recommended dates should have a lower score than the original date.
+\item \textbf{Dashboard Responsiveness:} Risk details and recommendations render within one second after the API response.
+\end{itemize}
+
+\subsection{Pilot validation plan}
+Test historical launch dates against manually researched competing events and conduct a small usability trial with students role-playing marketing or product managers.
+
+\section{Scalability}
+\begin{enumerate}[leftmargin=0.7cm]
+\item \textbf{Scalable theoretically:} Separate ingestion from scoring, cache repeated date windows, and introduce indexing as event volume grows.
+\item \textbf{Operationally deployable practically:} Containerize frontend and backend, add industries through new source configurations, and run initially on standard relational storage with lightweight caching.
+\end{enumerate}
+
+\section{Engine availability heuristic}
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{React + Tailwind CSS:} Frontend dashboard and calendar interface.
+\item \textbf{FastAPI:} Python backend for event and scoring endpoints.
+\item \textbf{PostgreSQL:} Storage for events, users, and reports.
+\item \textbf{Redis:} Optional cache for frequently requested date ranges.
+\item \textbf{Pandas / Scikit-learn:} Data preprocessing and scoring utilities.
+\item \textbf{External Event APIs:} Initial event ingestion sources.
+\item \textbf{GitHub Actions:} Automated testing and CI/CD.
+\end{itemize}
+
+\section{Project scope and deliverables}
+\subsection{Initial deliverable}
+\begin{itemize}[leftmargin=0.7cm]
+\item Basic React dashboard for event submission.
+\item One external event source integrated into the ingestion pipeline.
+\item Working FastAPI endpoint returning High / Medium / Low collision risk.
+\item Risk breakdown showing the events responsible for the score.
+\item PostgreSQL persistence for submitted events and reports.
+\item Automated CI pipeline for linting, testing, and build validation.
+\end{itemize}
+
+\subsection{Subsequent deliverables}
+\begin{itemize}[leftmargin=0.7cm]
+\item Additional event sources and industry coverage.
+\item Alternative-date recommendation engine.
+\item Improved caching and query performance.
+\item Administrator interface for event-source management.
+\item Optional calendar integration for confirmed launch dates.
+\end{itemize}
+
+\section{Risks and mitigations}
+\begin{itemize}[leftmargin=0.7cm]
+\item \textbf{API Rate Limits / Data Gaps:} Cache retrieved events and reduce confidence when source data is incomplete.
+\item \textbf{Scoring Heuristic Inaccuracy:} Validate weights against manually labeled historical examples.
+\item \textbf{Cold-Start Coverage:} Seed the event store with an initial historical batch.
+\item \textbf{Inconsistent Event Metadata:} Normalize incoming events into a common schema before scoring.
+\item \textbf{Over-Engineering:} Keep the first version limited to one or two industries and an explainable scoring function.
+\end{itemize}
+
+\section{Summary}
+The \textbf{Event Collision Detector} is a deployable scheduling-intelligence platform that helps teams avoid launching into crowded attention windows. It combines external event aggregation, explainable collision scoring, and alternative-date recommendations in a single web dashboard. The project emphasizes rapid time-to-value, measurable evaluation criteria, modular architecture, mature tooling, and a clear path from prototype to scalable product.
 
 \end{document}
