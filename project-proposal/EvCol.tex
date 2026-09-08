@@ -9,8 +9,14 @@
 \usepackage{titlesec}
 \usepackage{hyperref}
 \usepackage{caption}
-\usepackage{tikz}
 \usepackage{float}
+
+% 1. Added graphicx for your image files
+% REMOVE "[demo]" once you actually have dfd.png and usecase.png in your folder!
+\usepackage{graphicx} 
+
+% 2. Kept all your original TikZ settings for the other diagrams
+\usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
 
 \definecolor{mNavy}{RGB}{30,58,138}
@@ -28,10 +34,10 @@
 \titleformat{\subsection}{\normalfont\large\bfseries\color{mDark}}{\thesubsection}{1em}{}
 
 \tikzset{
-flowbox/.style={rectangle,rounded corners=3pt,draw=mBlue,very thick,fill=mLight,minimum width=2.6cm,minimum height=1cm,align=center,text width=2.5cm},
-process/.style={ellipse,draw=mPurple,very thick,fill=mLight,minimum width=3cm,minimum height=1.2cm,align=center},
-datastore/.style={rectangle,draw=mOrange,very thick,fill=mLight,minimum width=3cm,minimum height=.9cm,align=center},
-entity/.style={rectangle,draw=mGreen,very thick,fill=mLight,minimum width=3cm,minimum height=.9cm,align=center},
+flowbox/.style={rectangle,rounded corners=3pt,draw=mBlue,very thick,fill=mLight,minimum width=2.2cm,minimum height=1cm,align=center,text width=2.2cm,font=\small},
+process/.style={ellipse,draw=mPurple,very thick,fill=mLight,minimum width=2.8cm,minimum height=1.1cm,align=center,font=\small},
+datastore/.style={rectangle,draw=mOrange,very thick,fill=mLight,minimum width=2.8cm,minimum height=.9cm,align=center,font=\small},
+entity/.style={rectangle,draw=mGreen,very thick,fill=mLight,minimum width=2.8cm,minimum height=.9cm,align=center,font=\small},
 tier/.style={rectangle,rounded corners=4pt,draw=mBlue,very thick,fill=mLight,minimum width=4.8cm,minimum height=1.05cm,align=center},
 arrow/.style={-{Latex[length=3mm]},thick,draw=mSlate}
 }
@@ -84,35 +90,37 @@ Marketing and product teams often choose launch dates using internal schedules w
 \subsection{Overview}
 Build a web-based \textbf{Event Collision Detector} with the following components:
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{Cross-Industry Event Radar:} Aggregates external events from APIs, conference schedules, and selected public sources.
-\item \textbf{Real-Time Collision Scoring:} Produces a High / Medium / Low risk score for a proposed date.
+\item \textbf{Cross-Industry Event Radar:} Aggregates external events from APIs, conference schedules, and selected public sources into an indexed event catalog (\texttt{D2: Event Index}).
+\item \textbf{Real-Time Collision Scoring:} Produces a High / Medium / Low risk score for a proposed date by searching nearby dates ($\pm 7$ days).
 \item \textbf{Optimal Launch Recommendations:} Searches surrounding dates and returns lower-risk alternatives.
 \item \textbf{Interactive Risk Dashboard:} Displays the risk score, conflicting events, and explanations.
-\item \textbf{Event and Source Management:} Allows administrators to maintain event records and tracked sources.
+\item \textbf{Calendar Syncing \& Source Management:} Allows users to sync finalized dates to Google/Outlook calendars and enables administrators to manage industry configurations and users.
 \end{itemize}
 
 \subsection{Core workflow}
 \begin{enumerate}[leftmargin=0.7cm]
-\item Event organizer enters a proposed launch date, industry, target audience, and event details.
-\item Backend retrieves nearby competing events from the event store.
-\item Collision engine compares timing, relevance, audience overlap, and estimated media friction.
-\item System assigns a risk level and identifies the events contributing to it.
-\item Recommendation engine scans nearby dates and returns lower-risk alternatives.
-\item Dashboard displays and stores the final collision report.
+\item \textbf{Ingest \& Normalize:} Ingestion jobs continuously normalize raw event data into \texttt{D2: Event Index (Elasticsearch)} based on admin industry rules.
+\item \textbf{Process Submission:} User submits launch date details; validated parameters and user session records are logged to \texttt{D1: User Store (PostgreSQL)}.
+\item \textbf{Retrieve Events:} System queries \texttt{D2} for competing events occurring within $\pm 7$ days of the target date.
+\item \textbf{Compute Risk \& Recommendations:} Scoring engine computes collision risk, identifies primary drivers, and identifies low-risk alternative launch windows.
+\item \textbf{Render Dashboard:} Interactive dashboard renders collision risk scores, event breakdowns, and recommended date cards.
+\item \textbf{Sync Confirmed Date:} User selects a final date, updating \texttt{D1} and pushing an OAuth event payload to external calendar platforms (Google/Outlook).
 \end{enumerate}
 
+% Restored Original Core Workflow TikZ
 \begin{figure}[H]
 \centering
 \resizebox{0.98\textwidth}{!}{
-\begin{tikzpicture}[node distance=1.5cm]
-\node[flowbox] (a) {1. Submit\\Event Details};
-\node[flowbox,right=of a] (b) {2. Retrieve\\Nearby Events};
-\node[flowbox,right=of b] (c) {3. Collision\\Scoring};
-\node[flowbox,right=of c] (d) {4. Alternative-Date\\Search};
-\node[flowbox,right=of d] (e) {5. Risk Report\\\& Recommendation};
-\draw[arrow] (a)--(b); \draw[arrow] (b)--(c); \draw[arrow] (c)--(d); \draw[arrow] (d)--(e);
+\begin{tikzpicture}[node distance=1.1cm]
+\node[flowbox] (a) {1. Ingest \& Normalize Events};
+\node[flowbox,right=of a] (b) {2. Process Launch Date};
+\node[flowbox,right=of b] (c) {3. Retrieve Nearby Events};
+\node[flowbox,right=of c] (d) {4. Compute Risk \& Recs};
+\node[flowbox,right=of d] (e) {5. Render Dashboard};
+\node[flowbox,right=of e] (f) {6. Sync Confirmed Date};
+\draw[arrow] (a)--(b); \draw[arrow] (b)--(c); \draw[arrow] (c)--(d); \draw[arrow] (d)--(e); \draw[arrow] (e)--(f);
 \end{tikzpicture}}
-\caption{Event Collision Detector Core Workflow Execution Pipeline}
+\caption{Event Collision Detector Core Workflow Execution Pipeline (Aligned with Level 1 DFD)}
 \end{figure}
 
 \subsection{Operational constraints for an educational setting}
@@ -123,26 +131,49 @@ Build a web-based \textbf{Event Collision Detector} with the following component
 \item Keep the system deployable on standard cloud infrastructure or containerized local environments.
 \end{itemize}
 
+\section{System Analysis \& Behavioral Diagrams}
+
+\subsection{Level 1 Data Flow Diagram (DFD)}
+The Level 1 DFD models the flow of data across the system entities, processes, and persistent data stores.
+
+\begin{figure}[H]
+\centering
+% This is where your external DFD image goes
+\includegraphics[width=0.95\textwidth, height=8cm]{dfd.png}
+\caption{Level 1 Data Flow Diagram (DFD) for Event Collision Detector}
+\end{figure}
+
+\subsection{Use Case Diagram}
+The Use Case Diagram defines the interactions between key system actors and the primary functional features.
+
+\begin{figure}[H]
+\centering
+% This is where your external Use Case image goes
+\includegraphics[width=0.95\textwidth, height=10cm]{usecase.png}
+\caption{System Use Case Diagram with Actors and Boundary Constraints}
+\end{figure}
+
 \section{Solution Approach}
 This project focuses on software engineering, event ingestion, low-latency retrieval, explainable scoring, and a responsive dashboard rather than novel machine-learning research.
 
 \subsection{Collision analysis logic}
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{Temporal Proximity:} Events closer to the proposed date receive greater weight.
+\item \textbf{Temporal Proximity:} Events closer to the proposed date ($\pm 7$ day window) receive greater weight.
 \item \textbf{Industry Relevance:} Same-industry or related events contribute more strongly to risk.
 \item \textbf{Audience Overlap:} Similar target-audience tags increase attention conflict.
 \item \textbf{Event Magnitude:} Larger events receive greater importance.
 \item \textbf{Media Friction:} Events competing for similar channels or press attention increase the score.
 \end{itemize}
 
+% Restored Original Collision Logic TikZ
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=1.4cm and 2.0cm]
-\node[entity] (planned) {Proposed\\Launch Event};
-\node[entity,below=of planned] (external) {External\\Events};
-\node[process,right=3.0cm of $(planned)!0.5!(external)$] (engine) {Collision\\Analysis Engine};
-\node[datastore,right=3.2cm of engine,yshift=1.0cm] (risk) {Risk Score\\High / Medium / Low};
-\node[datastore,right=3.2cm of engine,yshift=-1.0cm] (conflicts) {Conflicting Events\\and Explanations};
+\node[entity] (planned) {2.0 Launch Submission\\Request};
+\node[datastore,below=of planned] (external) {D2: Event Index\\(Elasticsearch)};
+\node[process,right=2.8cm of $(planned)!0.5!(external)$] (engine) {4.0 Compute Risk \&\\Recommendations};
+\node[datastore,right=3.2cm of engine,yshift=1.0cm] (risk) {Risk Score \&\\Alternative Dates};
+\node[datastore,right=3.2cm of engine,yshift=-1.0cm] (conflicts) {5.0 Interactive\\Dashboard Display};
 \draw[arrow] (planned.east)--(engine.west);
 \draw[arrow] (external.east)--(engine.west);
 \draw[arrow] (engine.east)--(risk.west);
@@ -152,47 +183,29 @@ This project focuses on software engineering, event ingestion, low-latency retri
 \end{figure}
 
 \subsection{System architecture}
-A layered architecture separates user interaction, application logic, scoring, ingestion, and storage.
+A layered architecture separates user interaction, application logic, scoring, ingestion, and persistent storage.
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{Frontend Dashboard:} React.js + Tailwind CSS.
-\item \textbf{API Layer:} FastAPI backend for event submission, scoring, reports, and administration.
-\item \textbf{Collision Scoring Service:} Python with Pandas / Scikit-learn utilities.
-\item \textbf{Data Ingestion Layer:} Scheduled jobs that collect and normalize events from selected APIs.
-\item \textbf{Storage Layer:} PostgreSQL for users, submitted events, external events, and reports; Redis optionally for caching.
+\item \textbf{Frontend Dashboard:} React.js + Tailwind CSS for rendering the interactive dashboard and calendar sync actions.
+\item \textbf{API Layer:} FastAPI backend handling submission processing, date retrieval, and OAuth calendar synchronization.
+\item \textbf{Collision Scoring Service:} Python analysis service executing proximity and audience collision heuristics.
+\item \textbf{Data Ingestion Layer:} Ingestion service that retrieves raw data from External Event APIs and normalizes records into Elasticsearch.
+\item \textbf{Storage Layer:} Dual-store database setup featuring \texttt{D1: User Store (PostgreSQL)} for user/session records and confirmed events, and \texttt{D2: Event Index (Elasticsearch)} for fast $\pm 7$ day date-range queries.
 \end{itemize}
 
+% Restored Original Architecture TikZ
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[node distance=0.8cm]
-\node[tier] (client) {\textbf{Client Tier}\\React + Tailwind Dashboard};
-\node[tier,below=of client] (api) {\textbf{Application Tier}\\FastAPI REST API};
-\node[tier,below=of api] (logic) {\textbf{Analysis Tier}\\Collision Scoring + Recommendation Engine};
-\node[tier,below=of logic] (ingest) {\textbf{Ingestion Tier}\\Scheduled External Event Collection};
-\node[tier,below=of ingest] (data) {\textbf{Data Tier}\\PostgreSQL + Redis Cache};
-\draw[arrow] (client)--node[right]{HTTPS / REST}(api);
+\node[tier] (client) {\textbf{Client Tier}\\React + Tailwind Dashboard (5.0 Render Dashboard)};
+\node[tier,below=of client] (api) {\textbf{Application Tier}\\FastAPI REST API (2.0 Launch Processing \& 6.0 Calendar Sync)};
+\node[tier,below=of api] (logic) {\textbf{Analysis Tier}\\Collision Scoring \& Recommendations (4.0 Compute Risk)};
+\node[tier,below=of logic] (ingest) {\textbf{Ingestion Tier}\\Normalized Event Ingestion (1.0 Ingest External Events)};
+\node[tier,below=of ingest] (data) {\textbf{Data Tier}\\D1: PostgreSQL (Users) + D2: Elasticsearch (Events)};
+\draw[arrow] (client)--node[right]{\small HTTPS / REST}(api);
 \draw[arrow] (api)--(logic); \draw[arrow] (logic)--(ingest); \draw[arrow] (ingest)--(data);
 \end{tikzpicture}
 \caption{Event Collision Detector Layered Web Architecture}
 \end{figure}
-
-\subsection{System Modeling: Use Cases and Functional Specifications}
-The primary actors are the \emph{Event Organizer}, the \emph{System Administrator}, and the \emph{External Event Sources}.
-
-\begin{table}[H]
-\centering
-\small
-\begin{tabular}{@{}lp{4.0cm}p{8.7cm}@{}}
-\toprule
-\textbf{ID} & \textbf{Use Case} & \textbf{Functional Specification \& Scope} \\ \midrule
-\textbf{UC-1} & Submit Proposed Event & User enters event date, industry, target audience, and supporting details. \\
-\textbf{UC-2} & Collect External Events & System periodically retrieves and normalizes events from selected APIs and calendars. \\
-\textbf{UC-3} & Compute Collision Score & Scoring service compares the proposed event with nearby external events. \\
-\textbf{UC-4} & Display Risk Breakdown & Dashboard displays High / Medium / Low risk and the specific conflicting events. \\
-\textbf{UC-5} & Recommend Alternative Dates & Recommendation engine evaluates nearby dates and returns lower-risk options. \\
-\textbf{UC-6} & Generate Collision Report & System stores and displays an explainable report for each analysis. \\
-\textbf{UC-7} & Maintain Event Data & Administrator updates invalid events and manages active data sources. \\ \bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{CI/CD and fast delivery enabler}
 CI/CD pipelines will run unit tests for scoring and normalization logic, verify frontend-backend API contracts, validate builds, and publish project documentation through GitHub Actions.
@@ -201,16 +214,16 @@ CI/CD pipelines will run unit tests for scoring and normalization logic, verify 
 \subsection{Primary evaluation metric}
 \textbf{Collision Score Latency (CSL):} Time from proposed-event submission to returned risk score and recommendation set.
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{Target:} Median CSL $\leq 500$ ms against a pre-indexed event dataset.
+\item \textbf{Target:} Median CSL $\leq 500$ ms against an indexed Elasticsearch event dataset (\texttt{D2}).
 \item \textbf{Measurement:} Backend request timing recorded for each scoring request.
 \end{itemize}
 
 \subsection{Secondary evaluation metrics}
 \begin{itemize}[leftmargin=0.7cm]
 \item \textbf{Scoring Agreement:} At least 80\% agreement with manual assessment on a labeled validation set.
-\item \textbf{Ingestion Freshness:} Newly published events reflected within 24 hours of the ingestion cycle.
+\item \textbf{Ingestion Freshness:} Newly published API events reflected in \texttt{D2} within 24 hours of the ingestion cycle.
 \item \textbf{Recommendation Quality:} At least 90\% of recommended dates should have a lower score than the original date.
-\item \textbf{Dashboard Responsiveness:} Risk details and recommendations render within one second after the API response.
+\item \textbf{Dashboard Responsiveness:} Risk details and recommendations render on the interactive dashboard within one second after the API response.
 \end{itemize}
 
 \subsection{Pilot validation plan}
@@ -218,29 +231,29 @@ Test historical launch dates against manually researched competing events and co
 
 \section{Scalability}
 \begin{enumerate}[leftmargin=0.7cm]
-\item \textbf{Scalable theoretically:} Separate ingestion from scoring, cache repeated date windows, and introduce indexing as event volume grows.
-\item \textbf{Operationally deployable practically:} Containerize frontend and backend, add industries through new source configurations, and run initially on standard relational storage with lightweight caching.
+\item \textbf{Scalable theoretically:} Separate ingestion (\texttt{1.0}) from scoring (\texttt{4.0}), cache repeated date windows in Elasticsearch (\texttt{D2}), and introduce query optimization as event volume grows.
+\item \textbf{Operationally deployable practically:} Containerize frontend and backend, add industries through new source configurations, and run initially on PostgreSQL (\texttt{D1}) and Elasticsearch (\texttt{D2}).
 \end{enumerate}
 
 \section{Engine availability heuristic}
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{React + Tailwind CSS:} Frontend dashboard and calendar interface.
-\item \textbf{FastAPI:} Python backend for event and scoring endpoints.
-\item \textbf{PostgreSQL:} Storage for events, users, and reports.
-\item \textbf{Redis:} Optional cache for frequently requested date ranges.
+\item \textbf{React + Tailwind CSS:} Frontend dashboard and interactive rendering.
+\item \textbf{FastAPI:} Python backend for event, scoring, and calendar sync endpoints.
+\item \textbf{PostgreSQL (\texttt{D1}):} Storage for user accounts, session records, and updated finalized events.
+\item \textbf{Elasticsearch (\texttt{D2}):} Index for normalized external events and low-latency date-range filtering.
 \item \textbf{Pandas / Scikit-learn:} Data preprocessing and scoring utilities.
-\item \textbf{External Event APIs:} Initial event ingestion sources.
+\item \textbf{External Event APIs / OAuth:} Ingestion sources (Eventbrite/PredictHQ) and calendar push platforms (Google/Outlook).
 \item \textbf{GitHub Actions:} Automated testing and CI/CD.
 \end{itemize}
 
 \section{Project scope and deliverables}
 \subsection{Initial deliverable}
 \begin{itemize}[leftmargin=0.7cm]
-\item Basic React dashboard for event submission.
-\item One external event source integrated into the ingestion pipeline.
-\item Working FastAPI endpoint returning High / Medium / Low collision risk.
+\item Basic React dashboard for event submission and rendering.
+\item One external event source integrated into the ingestion pipeline (\texttt{1.0}).
+\item Working FastAPI endpoint returning High / Medium / Low collision risk (\texttt{4.0}).
 \item Risk breakdown showing the events responsible for the score.
-\item PostgreSQL persistence for submitted events and reports.
+\item PostgreSQL (\texttt{D1}) and Elasticsearch (\texttt{D2}) persistence setup.
 \item Automated CI pipeline for linting, testing, and build validation.
 \end{itemize}
 
@@ -248,17 +261,16 @@ Test historical launch dates against manually researched competing events and co
 \begin{itemize}[leftmargin=0.7cm]
 \item Additional event sources and industry coverage.
 \item Alternative-date recommendation engine.
-\item Improved caching and query performance.
-\item Administrator interface for event-source management.
-\item Optional calendar integration for confirmed launch dates.
+\item OAuth calendar synchronization for Google and Outlook platforms (\texttt{6.0}).
+\item Administrator interface for user and event database management.
 \end{itemize}
 
 \section{Risks and mitigations}
 \begin{itemize}[leftmargin=0.7cm]
-\item \textbf{API Rate Limits / Data Gaps:} Cache retrieved events and reduce confidence when source data is incomplete.
+\item \textbf{API Rate Limits / Data Gaps:} Cache retrieved events in \texttt{D2} and reduce confidence when source data is incomplete.
 \item \textbf{Scoring Heuristic Inaccuracy:} Validate weights against manually labeled historical examples.
-\item \textbf{Cold-Start Coverage:} Seed the event store with an initial historical batch.
-\item \textbf{Inconsistent Event Metadata:} Normalize incoming events into a common schema before scoring.
+\item \textbf{Cold-Start Coverage:} Seed the Elasticsearch index with an initial historical batch.
+\item \textbf{Inconsistent Event Metadata:} Normalize incoming events into a common schema during Process \texttt{1.0} before scoring.
 \item \textbf{Over-Engineering:} Keep the first version limited to one or two industries and an explainable scoring function.
 \end{itemize}
 
