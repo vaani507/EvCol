@@ -165,19 +165,25 @@ This project focuses on software engineering, event ingestion, low-latency retri
 \item \textbf{Media Friction:} Events competing for similar channels or press attention increase the score.
 \end{itemize}
 
-% Restored Original Collision Logic TikZ
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance=1.4cm and 2.0cm]
-\node[entity] (planned) {2.0 Launch Submission\\Request};
-\node[datastore,below=of planned] (external) {D2: Event Index\\(Elasticsearch)};
-\node[process,right=2.8cm of $(planned)!0.5!(external)$] (engine) {4.0 Compute Risk \&\\Recommendations};
-\node[datastore,right=3.2cm of engine,yshift=1.0cm] (risk) {Risk Score \&\\Alternative Dates};
-\node[datastore,right=3.2cm of engine,yshift=-1.0cm] (conflicts) {5.0 Interactive\\Dashboard Display};
-\draw[arrow] (planned.east)--(engine.west);
-\draw[arrow] (external.east)--(engine.west);
-\draw[arrow] (engine.east)--(risk.west);
-\draw[arrow] (engine.east)--(conflicts.west);
+\begin{tikzpicture}
+% Center node
+\node[process] (engine) {4.0 Compute Risk \&\\Recommendations};
+
+% Left nodes positioned symmetrically
+\node[entity, left=1.5cm of engine, yshift=1.25cm] (planned) {2.0 Launch Submission\\Request};
+\node[datastore, left=1.5cm of engine, yshift=-1.25cm] (external) {D2: Event Index\\(Elasticsearch)};
+
+% Right nodes positioned symmetrically
+\node[datastore, right=1.5cm of engine, yshift=1.25cm] (risk) {Risk Score \&\\Alternative Dates};
+\node[datastore, right=1.5cm of engine, yshift=-1.25cm] (conflicts) {5.0 Interactive\\Dashboard Display};
+
+% Arrows
+\draw[arrow] (planned.east) -- (engine.west);
+\draw[arrow] (external.east) -- (engine.west);
+\draw[arrow] (engine.east) -- (risk.west);
+\draw[arrow] (engine.east) -- (conflicts.west);
 \end{tikzpicture}
 \caption{Collision Analysis and Explainable Risk-Scoring Logic}
 \end{figure}
