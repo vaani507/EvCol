@@ -28,9 +28,9 @@ The platform is designed to help teams make data-driven scheduling decisions and
 
 ## Tech Stack
 
-* Frontend: React
-* Backend: Node.js
-* Database: PostgreSQL
+* Frontend: HTML/CSS/JavaScript
+* Backend: Python
+* Database: SQLite/SQLAlchemy
 * Caching: Redis
 * Authentication: JWT
 * Data Sources: External event APIs
