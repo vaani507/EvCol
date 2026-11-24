@@ -57,6 +57,8 @@ def fetch_holidays_for_country(country_code: str, year: int) -> list[dict]:
     try:
         with httpx.Client(timeout=10.0) as client:
             resp = client.get(url)
+            if resp.status_code == 204:
+                return []
             resp.raise_for_status()
             return resp.json()
     except httpx.HTTPError as e:

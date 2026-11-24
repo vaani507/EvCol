@@ -117,6 +117,24 @@ body {
   white-space: nowrap; letter-spacing: 0.2px;
 }
 .btn-analyze-nav:hover { background: var(--orange2); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,84,26,0.4); }
+.campus-mode-toggle {
+  border: 1px solid rgba(242,232,208,0.2);
+  border-radius: 8px;
+  padding: 8px 13px;
+  background: rgba(242,232,208,0.06);
+  color: var(--cream);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.campus-mode-toggle:hover, .campus-mode-toggle.active {
+  border-color: var(--orange);
+  background: rgba(232,84,26,0.16);
+  color: var(--cream);
+}
 .nav-avatar {
   width: 34px; height: 34px; border-radius: 50%;
   background: var(--orange);
@@ -462,6 +480,47 @@ body {
 .form-group input:focus, .form-group select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232,84,26,0.1); }
 .form-group select option { background: #162216; color: var(--cream); }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.4; }
+.campus-layout { display: flex; flex-direction: column; gap: 24px; align-items: stretch; }
+.campus-card { padding: 28px; }
+.campus-card h3 { font-size: 17px; margin-bottom: 8px; color: var(--cream); }
+.campus-description { color: var(--text2); font-size: 13px; line-height: 1.6; margin-bottom: 22px; }
+.campus-submit { margin-top: 20px; }
+.campus-board-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.campus-board-actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; gap: 8px; }
+.campus-load-button { flex: 0 0 auto; padding: 8px 13px; font-size: 13px; }
+.campus-message { margin: 4px 0 16px; padding: 11px 13px; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+.campus-message-success { border: 1px solid rgba(122,173,106,0.35); background: rgba(122,173,106,0.1); color: #b6d2a7; }
+.campus-message-error { border: 1px solid rgba(224,80,80,0.4); background: rgba(224,80,80,0.1); color: #ffaaaa; }
+.campus-events-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 14px; align-items: start; }
+.campus-event { padding: 16px; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; background: rgba(255,255,255,0.025); }
+.campus-event-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.campus-event-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.campus-report-button { background: rgba(232,84,26,0.1); border: 1px solid rgba(232,84,26,0.25); color: var(--orange); border-radius: 6px; padding: 5px 9px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.campus-report-button:hover { background: rgba(232,84,26,0.18); }
+.event-type-badge { flex: 0 0 auto; border: 1px solid transparent; border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; }
+.event-type-cultural { color: #e5a6ee; background: rgba(190,95,205,0.13); border-color: rgba(190,95,205,0.24); }
+.event-type-business { color: #8bc7df; background: rgba(75,158,190,0.13); border-color: rgba(75,158,190,0.24); }
+.event-type-technical { color: #f0b56d; background: rgba(232,132,44,0.13); border-color: rgba(232,132,44,0.24); }
+.event-type-informal, .event-type-other { color: #c0c6b8; background: rgba(160,170,150,0.1); border-color: rgba(160,170,150,0.2); }
+.campus-event h4 { color: var(--cream); font-size: 14px; }
+.campus-event p, .campus-empty { margin-top: 5px; color: var(--text2); font-size: 13px; line-height: 1.5; }
+.campus-events-list > .campus-empty { grid-column: 1 / -1; }
+.campus-event .campus-duration-note { color: #e4c87d; font-size: 12px; }
+.campus-overlap-badge { flex: 0 0 auto; border-radius: 6px; padding: 4px 8px; background: rgba(122,173,106,0.13); color: #b6d2a7; font-size: 11px; font-weight: 700; }
+.campus-overlap-badge.has-overlap { background: rgba(224,80,80,0.13); color: #ffaaaa; }
+.campus-overlap-badge.campus-risk-medium { background: rgba(212,168,32,0.13); color: #e4c87d; }
+.campus-overlap-badge.campus-risk-high { background: rgba(224,80,80,0.13); color: #ffaaaa; }
+.campus-submit:disabled { opacity: 0.65; cursor: wait; transform: none; }
+.campus-report-note { color: var(--text2); font-size: 13px; margin: -10px 0 20px; line-height: 1.6; }
+.campus-report-factors { display: flex; flex-direction: column; gap: 19px; }
+.campus-report-factor-header { display: flex; justify-content: space-between; gap: 12px; color: var(--cream); font-size: 13px; font-weight: 600; }
+.campus-report-factor-track { height: 6px; background: rgba(255,255,255,0.07); border-radius: 6px; margin: 8px 0 5px; overflow: hidden; }
+.campus-report-factor-fill { height: 100%; border-radius: inherit; transition: width 0.6s ease; }
+.campus-report-factor p, .campus-recommendation-detail { color: var(--text2); font-size: 12px; line-height: 1.5; }
+.campus-report-conflict { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(224,80,80,0.16); border-radius: 8px; background: rgba(224,80,80,0.035); }
+.campus-report-conflict h4 { flex: 1 1 150px; color: var(--cream); font-size: 13px; }
+.campus-report-conflict p { flex: 2 1 220px; color: var(--text2); font-size: 12px; line-height: 1.5; }
+.campus-results-grid .score-card, .campus-results-grid .factors-card { min-height: 100%; }
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; }
 .check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
 .check-label input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--orange); cursor: pointer; }
@@ -779,6 +838,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opaci
 @media (max-width: 900px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .analyze-layout { grid-template-columns: 1fr; }
+  .campus-layout { grid-template-columns: 1fr; }
   .hero { flex-direction: column; padding: 40px 24px; }
   .hero-visual { width: 100%; }
   .dashboard-preview { max-width: 380px; margin: 0 auto; }
@@ -789,6 +849,10 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); opaci
 @media (max-width: 640px) {
   .navbar { padding: 0 16px; }
   .page-content { padding: 24px 16px 60px; }
+  .campus-card { padding: 20px; }
+  .campus-board-heading { flex-direction: column; }
+  .campus-board-actions { width: 100%; }
+  .campus-load-button { align-self: flex-start; }
   .hero { padding: 30px 16px; }
   .features-section { padding: 40px 16px 60px; }
   .summary-cards { grid-template-columns: 1fr 1fr; }

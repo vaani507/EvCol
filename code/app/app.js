@@ -6,7 +6,7 @@
 const API = 'http://localhost:8000';
 
 // ---- NAVIGATION ----
-const PAGES = ['home','dashboard','analyze','results','radar','calendar','history'];
+const PAGES = ['home','dashboard','analyze','results','radar','calendar','history','campus','campus-results'];
 let currentPage = 'home';
 
 function navigate(page) {
@@ -26,11 +26,26 @@ function navigate(page) {
   if (navLinks) navLinks.classList.remove('open');
 
   currentPage = page;
+  const campusToggle = document.getElementById('campusModeToggle');
+  if (campusToggle) {
+    const active = page === 'campus' || page === 'campus-results';
+    campusToggle.classList.toggle('active', active);
+    campusToggle.setAttribute('aria-pressed', String(active));
+    campusToggle.textContent = active ? 'Exit campus mode' : 'Campus mode';
+  }
 
   if (page === 'dashboard') { initCalendar(); loadDashboard(); }
   if (page === 'calendar') initFullCalendar();
   if (page === 'radar') loadRadar();
   if (page === 'history') loadHistory();
+  if (page === 'campus') {
+    loadCampusColleges();
+    loadCampusLocations();
+  }
+}
+
+function toggleCampusMode() {
+  navigate(currentPage === 'campus' || currentPage === 'campus-results' ? 'home' : 'campus');
 }
 
 function toggleMenu() {
@@ -562,6 +577,471 @@ function animateNumber(el, target, duration = 1200) {
 // ---- ADMIN ----
 function showAddSource()   { showToast('Add Event Source — coming in v2'); }
 function showAddIndustry() { showToast('Add Industry — coming in v2'); }
+
+// ---- CAMPUS MODE ----
+function campusApiError(payload, status) {
+  const detail = payload && payload.detail;
+  if (Array.isArray(detail)) return detail.map(item => item.msg).join(' ');
+  return detail || `Server error ${status}`;
+}
+
+function showCampusMessage(message, type = 'success') {
+  const output = document.getElementById('campusMessage');
+  if (!output) return;
+  output.textContent = message;
+  output.className = `campus-message campus-message-${type}`;
+}
+
+async function loadCampusColleges() {
+  try {
+    const response = await fetch(`${API}/api/campus/colleges`);
+    const colleges = await response.json();
+    if (!response.ok) throw new Error(campusApiError(colleges, response.status));
+
+    const datalist = document.getElementById('campusColleges');
+    datalist.replaceChildren();
+    colleges.forEach(college => {
+      const option = document.createElement('option');
+      option.value = college;
+      datalist.appendChild(option);
+    });
+  } catch (error) {
+    showCampusMessage(`Could not load college boards: ${error.message}`, 'error');
+  }
+}
+
+async function loadCampusLocations() {
+  try {
+    const response = await fetch(`${API}/api/campus/locations`);
+    const locations = await response.json();
+    if (!response.ok) throw new Error(campusApiError(locations, response.status));
+
+    const select = document.getElementById('campusLocation');
+    const selected = select.value;
+    select.replaceChildren();
+    const prompt = document.createElement('option');
+    prompt.value = '';
+    prompt.textContent = locations.length ? 'Choose a location' : 'Sync Saturnalia events to load locations';
+    select.appendChild(prompt);
+    locations.forEach(location => {
+      const option = document.createElement('option');
+      option.value = location;
+      option.textContent = location;
+      select.appendChild(option);
+    });
+    const other = document.createElement('option');
+    other.value = '__other__';
+    other.textContent = 'Other / add a location…';
+    select.appendChild(other);
+    select.value = locations.includes(selected) || selected === '__other__' ? selected : '';
+    toggleCustomCampusLocation();
+  } catch (error) {
+    showCampusMessage(`Could not load campus locations: ${error.message}`, 'error');
+  }
+}
+
+function toggleCustomCampusLocation() {
+  const select = document.getElementById('campusLocation');
+  const custom = document.getElementById('campusLocationOther');
+  const isCustom = select.value === '__other__';
+  custom.classList.toggle('hidden', !isCustom);
+  custom.required = isCustom;
+  if (!isCustom) custom.value = '';
+}
+
+async function fetchCampusEvents(college) {
+  const response = await fetch(`${API}/api/campus/events?college=${encodeURIComponent(college)}`);
+  const events = await response.json();
+  if (!response.ok) throw new Error(campusApiError(events, response.status));
+  return events;
+}
+
+function formatCampusDateTime(value) {
+  const date = value.slice(0, 10);
+  const time = value.slice(11, 16);
+  return `${fmt(date)} ${time}`;
+}
+
+function campusRiskColor(level) {
+  return riskColor(level);
+}
+
+function campusEventTypeClass(type) {
+  const knownTypes = ['cultural', 'business', 'technical', 'informal'];
+  const normalized = (type || '').trim().toLowerCase();
+  return `event-type-${knownTypes.includes(normalized) ? normalized : 'other'}`;
+}
+
+function renderCampusEvents(events) {
+  const list = document.getElementById('campusEventsList');
+  list.replaceChildren();
+  if (!events.length) {
+    const empty = document.createElement('p');
+    empty.className = 'campus-empty';
+    empty.textContent = 'No registered events for this college yet.';
+    list.appendChild(empty);
+    return;
+  }
+
+  events.forEach(event => {
+    const card = document.createElement('article');
+    card.className = 'campus-event';
+
+    const titleRow = document.createElement('div');
+    titleRow.className = 'campus-event-title-row';
+    const title = document.createElement('h4');
+    title.textContent = event.name;
+    const conflicts = event.overlaps_with || [];
+    const actions = document.createElement('div');
+    actions.className = 'campus-event-actions';
+    const typeBadge = document.createElement('span');
+    typeBadge.className = `event-type-badge ${campusEventTypeClass(event.category)}`;
+    typeBadge.textContent = event.category || 'Other';
+    const badge = document.createElement('span');
+    badge.className = `campus-overlap-badge campus-risk-${event.risk_level.toLowerCase()}${conflicts.length ? ' has-overlap' : ''}`;
+    badge.textContent = `${event.risk_level} · ${event.risk_score}/100`;
+    const reportButton = document.createElement('button');
+    reportButton.type = 'button';
+    reportButton.className = 'campus-report-button';
+    reportButton.textContent = 'Risk analysis';
+    reportButton.addEventListener('click', () => renderCampusRiskReport(event));
+    actions.append(typeBadge, badge, reportButton);
+    titleRow.append(title, actions);
+    card.appendChild(titleRow);
+
+    const detail = document.createElement('p');
+    const end = event.end_at ? formatCampusDateTime(event.end_at) : 'End time unavailable';
+    const source = event.source === 'Saturnalia' ? 'Saturnalia schedule' : event.team_name;
+    detail.textContent = `${source}${event.category ? ` · ${event.category}` : ''} · ${formatCampusDateTime(event.start_at)}–${end}`;
+    const location = document.createElement('p');
+    location.textContent = `Location: ${event.location}`;
+    card.append(detail, location);
+
+    if (!event.duration_known) {
+      const duration = document.createElement('p');
+      duration.className = 'campus-duration-note';
+      duration.textContent = 'The source does not provide a valid end time; only an identical start time is flagged.';
+      card.appendChild(duration);
+    }
+
+    list.appendChild(card);
+  });
+}
+
+function campusReportFactor(label, value, detail, displayValue = `${Math.round(value)}%`) {
+  const factor = document.createElement('div');
+  factor.className = 'campus-report-factor';
+  const header = document.createElement('div');
+  header.className = 'campus-report-factor-header';
+  const name = document.createElement('span');
+  name.textContent = label;
+  const score = document.createElement('span');
+  score.textContent = displayValue;
+  header.append(name, score);
+  const track = document.createElement('div');
+  track.className = 'campus-report-factor-track';
+  const fill = document.createElement('div');
+  fill.className = 'campus-report-factor-fill';
+  fill.style.width = `${Math.max(0, Math.min(100, value))}%`;
+  fill.style.background = campusRiskColor(value >= 65 ? 'High' : value >= 30 ? 'Medium' : 'Low');
+  track.appendChild(fill);
+  const description = document.createElement('p');
+  description.textContent = detail;
+  factor.append(header, track, description);
+  return factor;
+}
+
+function showCampusReportStatus(message, type = 'success') {
+  const output = document.getElementById('campusReportStatus');
+  output.textContent = message;
+  output.className = `campus-message campus-message-${type}`;
+}
+
+function renderCampusRiskReport(event) {
+  const conflicts = event.overlaps_with || [];
+  const recommendations = event.recommendations || [];
+  const score = Math.round(event.risk_score || 0);
+  const color = campusRiskColor(event.risk_level);
+  const scoreArc = document.getElementById('campusScoreArc');
+  const circumference = 2 * Math.PI * 50;
+
+  document.getElementById('campusReportTitle').textContent = event.name;
+  const meta = document.getElementById('campusReportMeta');
+  meta.replaceChildren();
+  [
+    fmt(event.start_at.slice(0, 10)),
+    event.college,
+    event.source === 'Saturnalia' ? 'Saturnalia schedule' : event.team_name,
+    event.location,
+  ].forEach((value, index) => {
+    if (index) {
+      const separator = document.createElement('span');
+      separator.className = 'meta-sep';
+      separator.textContent = '·';
+      meta.appendChild(separator);
+    }
+    const tag = document.createElement('span');
+    tag.className = 'meta-tag';
+    tag.textContent = value;
+    meta.appendChild(tag);
+  });
+  const typeTag = document.createElement('span');
+  typeTag.className = `event-type-badge ${campusEventTypeClass(event.category)}`;
+  typeTag.textContent = event.category || 'Other';
+  meta.appendChild(typeTag);
+
+  document.getElementById('campusReportScore').textContent = score;
+  const level = document.getElementById('campusReportLevel');
+  level.textContent = event.risk_level.toUpperCase();
+  level.style.color = color;
+  document.getElementById('campusReportScore').style.color = color;
+  document.getElementById('campusReportDate').textContent = formatCampusDateTime(event.start_at);
+  scoreArc.style.stroke = color;
+  scoreArc.style.strokeDashoffset = circumference - (score / 100) * circumference;
+
+  const summary = conflicts.length
+    ? `${conflicts.length} overlapping event${conflicts.length === 1 ? '' : 's'} found. The longest known overlap is ${event.peak_overlap_minutes === null ? 'unknown' : `${event.peak_overlap_minutes} minutes`}.`
+    : 'No schedule overlaps were found for this event in its college board.';
+  document.getElementById('campusReportSummary').textContent = summary;
+
+  const factors = document.getElementById('campusReportFactors');
+  factors.replaceChildren(
+    campusReportFactor(
+      'Overlapping events',
+      Math.min(100, conflicts.length * 25),
+      `${conflicts.length} competing event${conflicts.length === 1 ? '' : 's'} in the same college schedule.`
+    ),
+    campusReportFactor(
+      'Peak time affected',
+      event.peak_overlap_minutes === null
+        ? (conflicts.length ? 75 : 0)
+        : (event.end_at
+          ? Math.min(100, event.peak_overlap_minutes / Math.max(1, (Date.parse(event.end_at) - Date.parse(event.start_at)) / 60000) * 100)
+          : 0),
+      event.peak_overlap_minutes === null
+        ? (conflicts.length ? 'At least one conflict has no valid source end time.' : 'No known overlapping minutes.')
+        : `${event.peak_overlap_minutes} minute${event.peak_overlap_minutes === 1 ? '' : 's'} in the longest overlap.`
+    ),
+    campusReportFactor(
+      'Event type weight',
+      (event.risk_weight || 1) / 1.3 * 100,
+      `${event.category || 'Other'} events use a ${event.risk_weight || 1}x risk multiplier.`,
+      `${event.risk_weight || 1}x`
+    ),
+    campusReportFactor(
+      'Overall schedule risk',
+      score,
+      'Score combines overlap count, peak time affected, and event-type weight.'
+    )
+  );
+
+  const conflictContainer = document.getElementById('campusReportConflicts');
+  conflictContainer.replaceChildren();
+  if (!conflicts.length) {
+    const empty = document.createElement('p');
+    empty.className = 'campus-empty';
+    empty.textContent = 'No competing events found in this college board.';
+    conflictContainer.appendChild(empty);
+  } else {
+    conflicts.forEach(conflict => {
+      const item = document.createElement('article');
+      item.className = 'campus-report-conflict';
+      const title = document.createElement('h4');
+      title.textContent = conflict.name;
+      const details = document.createElement('p');
+      details.textContent = `${conflict.team_name} · ${conflict.location} · ${conflict.end_at
+        ? `${formatCampusDateTime(conflict.start_at)}–${formatCampusDateTime(conflict.end_at)}`
+        : `${formatCampusDateTime(conflict.start_at)} (end time unavailable)`}`;
+      const overlap = document.createElement('span');
+      overlap.className = 'risk-badge high-badge';
+      overlap.textContent = conflict.overlap_minutes === null
+        ? 'Possible same-start clash'
+        : `${conflict.overlap_minutes} min overlap`;
+      item.append(title, details, overlap);
+      conflictContainer.appendChild(item);
+    });
+  }
+
+  const alternatives = document.getElementById('campusReportAlternatives');
+  alternatives.replaceChildren();
+  if (!recommendations.length) {
+    const empty = document.createElement('p');
+    empty.className = 'campus-empty';
+    empty.textContent = event.reschedulable
+      ? (score ? 'No lower-risk 30-minute start slot fits on this day while preserving the event duration.' : 'No reschedule needed: this event has no schedule overlaps.')
+      : 'Imported Saturnalia events are read-only. Register a team event to plan a reschedule.';
+    alternatives.appendChild(empty);
+  } else {
+    recommendations.forEach((recommendation, index) => {
+      const card = document.createElement('article');
+      card.className = `alt-date-card${index === 0 ? ' recommended' : ''}`;
+      if (index === 0) {
+        const badge = document.createElement('div');
+        badge.className = 'recommended-badge';
+        badge.textContent = 'BEST SAME-DAY OPTION';
+        card.appendChild(badge);
+      }
+      const time = document.createElement('div');
+      time.className = 'alt-date-header';
+      time.textContent = `${formatCampusDateTime(recommendation.start_at)}–${recommendation.end_at.slice(11, 16)}`;
+      const risk = document.createElement('div');
+      risk.className = 'alt-score-row';
+      const riskBadge = document.createElement('span');
+      riskBadge.className = `risk-badge ${recommendation.risk_level.toLowerCase()}-badge`;
+      riskBadge.textContent = `${recommendation.risk_level} risk`;
+      const scoreLabel = document.createElement('span');
+      scoreLabel.className = 'alt-score';
+      scoreLabel.textContent = `${recommendation.risk_score}/100`;
+      scoreLabel.style.color = campusRiskColor(recommendation.risk_level);
+      risk.append(riskBadge, scoreLabel);
+      const detail = document.createElement('p');
+      detail.className = 'campus-recommendation-detail';
+      detail.textContent = recommendation.overlaps_with.length
+        ? `${recommendation.overlaps_with.length} overlap${recommendation.overlaps_with.length === 1 ? '' : 's'} remain`
+        : 'No overlapping events';
+      card.append(time, risk, detail);
+
+      const applyButton = document.createElement('button');
+      applyButton.type = 'button';
+      applyButton.className = 'btn-alt-select';
+      applyButton.textContent = 'Reschedule to this time';
+      applyButton.disabled = !event.reschedulable;
+      applyButton.addEventListener('click', () => applyCampusReschedule(event, recommendation, applyButton));
+      card.appendChild(applyButton);
+      alternatives.appendChild(card);
+    });
+  }
+
+  document.getElementById('campusReportStatus').className = 'campus-message hidden';
+  navigate('campus-results');
+}
+
+async function applyCampusReschedule(event, recommendation, button) {
+  button.disabled = true;
+  button.textContent = 'Rescheduling…';
+  try {
+    const response = await fetch(`${API}/api/campus/events/${event.id}/reschedule`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        college: event.college,
+        start_time: recommendation.start_at.slice(11, 16),
+        end_time: recommendation.end_at.slice(11, 16),
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(campusApiError(result, response.status));
+
+    const events = await fetchCampusEvents(result.college);
+    renderCampusEvents(events);
+    const updated = events.find(item => item.id === result.id) || result;
+    renderCampusRiskReport(updated);
+    showCampusReportStatus(`Rescheduled to ${formatCampusDateTime(updated.start_at)}. The risk analysis has been refreshed.`);
+  } catch (error) {
+    showCampusReportStatus(`Could not reschedule event: ${error.message}`, 'error');
+    button.disabled = false;
+    button.textContent = 'Reschedule to this time';
+  }
+}
+
+async function loadCampusBoard() {
+  const college = (document.getElementById('campusCollege').value || '').trim();
+  if (!college) {
+    showCampusMessage('Enter a college name to open its event board.', 'error');
+    return;
+  }
+
+  try {
+    const events = await fetchCampusEvents(college);
+    renderCampusEvents(events);
+    showCampusMessage(events.length
+      ? `Loaded ${events.length} event${events.length === 1 ? '' : 's'} for ${college}.`
+      : `No events are registered for ${college} yet.`);
+  } catch (error) {
+    showCampusMessage(`Could not load events: ${error.message}`, 'error');
+  }
+}
+
+async function syncSaturnaliaEvents() {
+  const button = document.getElementById('saturnaliaSyncButton');
+  button.disabled = true;
+  button.textContent = 'Syncing schedule…';
+  showCampusMessage('Fetching the official Saturnalia event schedule…');
+
+  try {
+    const response = await fetch(`${API}/api/campus/saturnalia/sync`, { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(campusApiError(result, response.status));
+
+    document.getElementById('campusCollege').value = result.college;
+    await Promise.all([loadCampusColleges(), loadCampusLocations()]);
+    renderCampusEvents(await fetchCampusEvents(result.college));
+    const unknownMessage = result.unknown_duration
+      ? ` ${result.unknown_duration} event(s) have no valid end time and are checked only for identical start times.`
+      : '';
+    showCampusMessage(
+      `Synced ${result.imported} Saturnalia events and ${result.location_count} locations.${unknownMessage}`
+    );
+  } catch (error) {
+    showCampusMessage(`Could not sync Saturnalia events: ${error.message}`, 'error');
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Sync Saturnalia events';
+  }
+}
+
+async function registerCampusEvent(event) {
+  event.preventDefault();
+  const college = (document.getElementById('campusCollege').value || '').trim();
+  const startTime = document.getElementById('campusStartTime').value;
+  const endTime = document.getElementById('campusEndTime').value;
+  const locationSelect = document.getElementById('campusLocation');
+  const location = locationSelect.value === '__other__'
+    ? document.getElementById('campusLocationOther').value.trim()
+    : locationSelect.value;
+  if (endTime <= startTime) {
+    showCampusMessage('End time must be later than start time.', 'error');
+    return;
+  }
+  if (!location) {
+    showCampusMessage('Choose a location or enter a new one.', 'error');
+    return;
+  }
+
+  const form = document.getElementById('campusEventForm');
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  try {
+    const response = await fetch(`${API}/api/campus/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        college,
+        team_name: document.getElementById('campusTeam').value.trim(),
+        name: document.getElementById('campusEventName').value.trim(),
+        event_type: document.getElementById('campusEventType').value,
+        date: document.getElementById('campusDate').value,
+        start_time: startTime,
+        end_time: endTime,
+        location
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(campusApiError(result, response.status));
+
+    const events = await fetchCampusEvents(result.college);
+    renderCampusEvents(events);
+    await Promise.all([loadCampusColleges(), loadCampusLocations()]);
+    renderCampusRiskReport(events.find(item => item.id === result.id) || result);
+    form.reset();
+    document.getElementById('campusCollege').value = result.college;
+    toggleCustomCampusLocation();
+  } catch (error) {
+    showCampusMessage(`Could not register event: ${error.message}`, 'error');
+  } finally {
+    submitButton.disabled = false;
+  }
+}
 
 // ---- KEYBOARD ----
 document.addEventListener('keydown', e => {

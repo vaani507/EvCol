@@ -28,6 +28,7 @@
   </div>
   <div class="nav-right">
     <button class="btn-analyze-nav" onclick="navigate('analyze')">+ Analyze</button>
+    <button class="campus-mode-toggle" id="campusModeToggle" type="button" aria-pressed="false" onclick="toggleCampusMode()">Campus mode</button>
     <div class="nav-avatar" title="Vaani">V</div>
     <button class="hamburger" id="hamburger" onclick="toggleMenu()">
       <span></span><span></span><span></span>
@@ -44,7 +45,6 @@
       <div class="orb orb-3"></div>
     </div>
     <div class="hero-content">
-      <div class="hero-badge"><span class="badge-dot"></span>Now with AI-powered risk scoring</div>
       <h1 class="hero-title">Event Collision<br/><span class="gradient-text">Detector</span></h1>
       <p class="hero-tagline">Make smarter launch decisions before the competition<br/>gets your audience's attention.</p>
       <p class="hero-desc">Every day, thousands of product launches compete for the same audience. Our AI-powered platform scans 1,248+ global events to surface conflicts before they cost you reach, press coverage, and conversions.</p>
@@ -57,13 +57,6 @@
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
           Explore Event Radar
         </button>
-      </div>
-      <div class="hero-stats">
-        <div class="stat-item"><span class="stat-num">1,248</span><span class="stat-label">Events Tracked</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-item"><span class="stat-num">98%</span><span class="stat-label">Accuracy Rate</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat-item"><span class="stat-num">50+</span><span class="stat-label">Industries</span></div>
       </div>
     </div>
     <div class="hero-visual">
@@ -464,6 +457,145 @@
   </div>
 </section>
 
+<!-- PAGE: CAMPUS MODE -->
+<section class="page" id="page-campus">
+  <div class="page-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Campus event checker</h1>
+        <p class="page-subtitle">Register college team events and check schedule overlaps, including locations.</p>
+      </div>
+    </div>
+
+    <div class="campus-layout">
+      <div class="glass-card campus-card">
+        <h3>Register an event</h3>
+        <p class="campus-description">Events are saved to their college board. No sample events are preloaded.</p>
+        <form id="campusEventForm" onsubmit="registerCampusEvent(event)">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label for="campusCollege">College / campus</label>
+              <input id="campusCollege" list="campusColleges" required maxlength="160" autocomplete="organization" />
+              <datalist id="campusColleges"></datalist>
+            </div>
+            <div class="form-group">
+              <label for="campusTeam">Team / club name</label>
+              <input id="campusTeam" required maxlength="160" />
+            </div>
+            <div class="form-group">
+              <label for="campusEventName">Event name</label>
+              <input id="campusEventName" required maxlength="200" />
+            </div>
+            <div class="form-group full">
+              <label for="campusEventType">Event type</label>
+              <select id="campusEventType" required>
+                <option value="">Choose an event type</option>
+                <option value="Cultural">Cultural</option>
+                <option value="Business">Business</option>
+                <option value="Technical">Technical</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label for="campusDate">Date</label>
+              <input id="campusDate" type="date" required />
+            </div>
+            <div class="form-group">
+              <label for="campusStartTime">Start time</label>
+              <input id="campusStartTime" type="time" required />
+            </div>
+            <div class="form-group">
+              <label for="campusEndTime">End time</label>
+              <input id="campusEndTime" type="time" required />
+            </div>
+            <div class="form-group full">
+              <label for="campusLocation">Location</label>
+              <select id="campusLocation" required onchange="toggleCustomCampusLocation()">
+                <option value="">Sync the Saturnalia schedule to load locations</option>
+                <option value="__other__">Other / add a location…</option>
+              </select>
+              <input id="campusLocationOther" class="hidden" maxlength="200" placeholder="Enter event location" />
+            </div>
+          </div>
+          <button class="btn-primary full-width campus-submit" type="submit">Register event &amp; check overlaps</button>
+        </form>
+      </div>
+
+      <div class="glass-card campus-card">
+        <div class="campus-board-heading">
+          <div>
+            <h3>College event board</h3>
+            <p class="campus-description">Saturnalia events and college registrations appear here. Overlaps are checked across locations.</p>
+          </div>
+          <div class="campus-board-actions">
+            <button id="saturnaliaSyncButton" class="btn-sync campus-load-button" type="button" onclick="syncSaturnaliaEvents()">Sync Saturnalia events</button>
+            <button class="btn-secondary campus-load-button" type="button" onclick="loadCampusBoard()">View board</button>
+          </div>
+        </div>
+        <p id="campusMessage" class="campus-message hidden" role="status"></p>
+        <div id="campusEventsList" class="campus-events-list">
+          <p class="campus-empty">Enter a college name and choose “View board” to see its registered events.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAGE: CAMPUS RISK REPORT -->
+<section class="page" id="page-campus-results">
+  <div class="page-content">
+    <div class="results-header">
+      <button class="back-btn" onclick="navigate('campus')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+        Back to campus events
+      </button>
+      <div>
+        <h1 class="page-title" id="campusReportTitle">Campus risk analysis</h1>
+        <div class="result-meta" id="campusReportMeta">
+          <span class="meta-tag">Choose an event to see its schedule analysis</span>
+        </div>
+      </div>
+    </div>
+    <p class="campus-report-note">This campus score uses schedule overlaps, affected time, and event-type weights: Cultural 1.0x, Business 1.15x, Technical 1.3x. It does not use the normal launch model’s audience or industry factors.</p>
+    <p id="campusReportStatus" class="campus-message hidden" role="status"></p>
+    <div class="results-grid campus-results-grid">
+      <div class="glass-card score-card">
+        <div class="score-ring-wrap">
+          <svg class="score-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+            <circle id="campusScoreArc" cx="60" cy="60" r="50" fill="none" stroke="#7aad6a" stroke-width="10"
+              stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round"
+              transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1.2s ease,stroke 0.5s"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-number" id="campusReportScore">—</div>
+            <div class="score-label-text" id="campusReportLevel">PENDING</div>
+            <div class="score-sub" id="campusReportDate">Select an event</div>
+          </div>
+        </div>
+        <div class="score-explanation">
+          <p id="campusReportSummary">Select an event from the campus board to see its overlap analysis.</p>
+        </div>
+      </div>
+      <div class="glass-card factors-card">
+        <h3>Schedule Collision Breakdown</h3>
+        <div id="campusReportFactors" class="campus-report-factors"></div>
+      </div>
+      <div class="glass-card conflicts-card">
+        <h3>Overlapping Events</h3>
+        <div id="campusReportConflicts" class="conflict-events">
+          <p class="campus-empty">No event selected.</p>
+        </div>
+      </div>
+      <div class="glass-card alternatives-card">
+        <h3>Same-day reschedule options</h3>
+        <p class="alt-subtitle">Suggestions preserve the event duration and avoid overlapping times where possible.</p>
+        <div id="campusReportAlternatives" class="alt-dates">
+          <p class="campus-empty">No event selected.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Loading Overlay -->
 <div class="loading-overlay hidden" id="loadingOverlay">
