@@ -64,3 +64,14 @@ Event / Market APIs
 ```
 
 The system continuously collects external events, evaluates proposed launch dates against those events, and generates a collision score and recommended launch window.
+
+## Deploy with Streamlit Community Cloud
+
+The repository includes a Streamlit version of the application in `streamlit_app.py`.
+To deploy it:
+
+1. Push this repository to GitHub.
+2. In [Streamlit Community Cloud](https://share.streamlit.io/), create an app from the repository's main branch.
+3. Set **Main file path** to `streamlit_app.py` and deploy. Dependencies are installed from the root `requirements.txt`.
+
+The app initializes and seeds its SQLite database on startup. Streamlit Community Cloud's local filesystem is not persistent across app restarts, so registered campus events and analysis history may be lost after a restart.
